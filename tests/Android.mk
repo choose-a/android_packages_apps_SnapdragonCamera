@@ -11,8 +11,8 @@ LOCAL_STATIC_JAVA_LIBRARIES := littlemock dexmaker
 # Include all test java files.
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
 
-LOCAL_PACKAGE_NAME := Camera2Tests
+LOCAL_PACKAGE_NAME := SnapTests
 
-LOCAL_INSTRUMENTATION_FOR := Camera2
+LOCAL_INSTRUMENTATION_FOR := SnapdragonCamera
 
 #include $(BUILD_PACKAGE)
