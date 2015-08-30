@@ -1990,7 +1990,7 @@ public class PhotoModule
         }
         /* Disable focus if aebracket is ON */
         String aeBracket = mParameters.get(CameraSettings.KEY_QC_AE_BRACKETING);
-        if (!aeBracket.equalsIgnoreCase("off")) {
+        if (aeBracket != null && !aeBracket.equalsIgnoreCase("off")) {
             flashMode = Parameters.FLASH_MODE_OFF;
             mParameters.setFlashMode(flashMode);
         }
@@ -3687,7 +3687,7 @@ public class PhotoModule
 
         /* Disable focus if aebracket is ON */
         String aeBracket = mParameters.get(CameraSettings.KEY_QC_AE_BRACKETING);
-        if (!aeBracket.equalsIgnoreCase("off")) {
+        if (aeBracket != null && !aeBracket.equalsIgnoreCase("off")) {
             String fMode = Parameters.FLASH_MODE_OFF;
             mParameters.setFlashMode(fMode);
         }
