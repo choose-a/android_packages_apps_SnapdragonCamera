@@ -262,6 +262,21 @@ public class CameraHolder {
             }
             mCameraId = cameraId;
             mParameters = mCameraDevice.getCamera().getParameters();
+
+            // Manufacturer specific key values
+            String manufacturerKeyValues = context.getResources().getString(R.string.manufacturer_key_values);
+            if (manufacturerKeyValues != null && !manufacturerKeyValues.isEmpty()) {
+                String[] keyValuesArray = manufacturerKeyValues.split(";");
+                for (String kvPair : keyValuesArray) {
+                    String[] manufacturerParamPair = kvPair.split("=");
+                    if (!manufacturerParamPair[0].isEmpty() && !manufacturerParamPair[1].isEmpty()) {
+                        Log.d(TAG, "Set manufacturer specific parameter " + manufacturerParamPair[0] + "=" + manufacturerParamPair[1]);
+                        mParameters.set(manufacturerParamPair[0], manufacturerParamPair[1]);
+                    }
+                }
+                mCameraDevice.setParameters(mParameters);
+            }
+
         } else {
             if (!mCameraDevice.reconnect(handler, cb)) {
                 Log.e(TAG, "fail to reconnect Camera:" + mCameraId + ", aborting.");
