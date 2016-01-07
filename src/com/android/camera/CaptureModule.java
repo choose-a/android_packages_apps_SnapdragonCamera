@@ -2355,12 +2355,6 @@ public class CaptureModule implements CameraModule, PhotoController,
         }
     }
 
-    public void doShutterAnimation() {
-        if (mUI != null) {
-            mUI.doShutterAnimation();
-        }
-    }
-
     private CameraCaptureSession.CaptureCallback mLongshotCallBack= new CameraCaptureSession.CaptureCallback() {
             @Override
             public void onCaptureCompleted(CameraCaptureSession session,
@@ -2373,12 +2367,6 @@ public class CaptureModule implements CameraModule, PhotoController,
                 Log.d(TAG, "captureStillPictureForLongshot onCaptureCompleted: " + mNumFramesArrived.get() + " " + mShotNum);
                 if (mLongshotActive) {
                     checkAndPlayShutterSound(getMainCameraId());
-                    mActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mUI.doShutterAnimation();
-                        }
-                    });
                 }
                 mLongshoting = false;
             }
@@ -2406,14 +2394,6 @@ public class CaptureModule implements CameraModule, PhotoController,
                                         CaptureRequest request,
                                         CaptureFailure result) {
                 Log.d(TAG, "captureStillPictureForLongshot onCaptureFailed.");
-                if (mLongshotActive) {
-                    mActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mUI.doShutterAnimation();
-                        }
-                    });
-                }
                 mLongshoting = false;
             }
 

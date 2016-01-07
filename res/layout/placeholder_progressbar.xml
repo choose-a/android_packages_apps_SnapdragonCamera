@@ -26,4 +26,3 @@
         android:indeterminate="true"
         android:indeterminateOnly="true"
         android:background="@null"/>
-
