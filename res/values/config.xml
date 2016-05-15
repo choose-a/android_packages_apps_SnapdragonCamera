@@ -57,4 +57,7 @@
 
     <!-- Enable HAL3 by default -->
     <bool name="config_use_hal3">false</bool>
+
+    <!-- hide zsl preference and use whatever devices wants -->
+    <bool name="pref_camera_zsl_disabled">false</bool>
 </resources>
