@@ -99,7 +99,6 @@ public class WideAnglePanoramaUI implements
     // Color definitions.
     private int mIndicatorColor;
     private int mIndicatorColorFast;
-    private int mReviewBackground;
     private SurfaceTexture mSurfaceTexture;
     private View mPreviewCover;
 
@@ -442,7 +441,6 @@ public class WideAnglePanoramaUI implements
 
         Resources appRes = mActivity.getResources();
         mIndicatorColor = appRes.getColor(R.color.pano_progress_indication);
-        mReviewBackground = appRes.getColor(R.color.review_background);
         mIndicatorColorFast = appRes.getColor(R.color.pano_progress_indication_fast);
 
         mPreviewCover = mRootView.findViewById(R.id.preview_cover);
@@ -472,7 +470,6 @@ public class WideAnglePanoramaUI implements
         // Hide menu and indicators.
         mRootView.findViewById(R.id.menu).setVisibility(View.GONE);
         mRootView.findViewById(R.id.on_screen_indicators).setVisibility(View.GONE);
-        mReview.setBackgroundColor(mReviewBackground);
 
         // TODO: set display change listener properly.
         ((CameraRootView) mRootView).setDisplayChangeListener(null);
@@ -707,5 +704,12 @@ public class WideAnglePanoramaUI implements
         mTooFastPrompt.setRotation(-orientation);
         mCameraControls.setOrientation(orientation, animation);
         RotateTextToast.setOrientation(orientation);
+    }
+
+    public void hidePreviewCover() {
+        // Hide the preview cover if need.
+        if (mPreviewCover.getVisibility() != View.GONE) {
+            mPreviewCover.setVisibility(View.GONE);
+        }
     }
 }
