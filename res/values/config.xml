@@ -48,9 +48,9 @@
          Example: 50 instead of ISO50 -->
     <bool name="iso_values_use_numbers">false</bool>
 
-    <!-- Enable HAL3 by default -->
-    <bool name="config_use_hal3">false</bool>
-
     <!-- Minimum picture size (in pixel) to include in selection list -->
     <integer name="minimum_picture_size">900000</integer>
+
+    <!-- Enable HAL3 by default -->
+    <bool name="config_use_hal3">false</bool>
 </resources>
