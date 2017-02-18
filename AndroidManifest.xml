@@ -47,6 +47,7 @@
             android:clearTaskOnLaunch="true"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:icon="@mipmap/ic_launcher_camera"
+            android:exported="true"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:logo="@mipmap/ic_launcher_gallery"
