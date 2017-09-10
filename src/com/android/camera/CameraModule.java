@@ -39,6 +39,8 @@ public interface CameraModule {
 
     public void onStop();
 
+    public void onDestroy();
+
     public void installIntentFilter();
 
     public void onActivityResult(int requestCode, int resultCode, Intent data);
@@ -74,4 +76,6 @@ public interface CameraModule {
     public void waitingLocationPermissionResult(boolean waiting);
 
     public void enableRecordingLocation(boolean enable);
+
+    public void setPreferenceForTest(String key, String value);
 }

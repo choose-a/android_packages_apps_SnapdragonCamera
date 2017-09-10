@@ -672,7 +672,7 @@ public class VideoUI implements PieRenderer.PieListener,
         }
         mRenderOverlay.addRenderer(mZoomRenderer);
         if (mGestures == null) {
-            mGestures = new PreviewGestures(mActivity, this, mZoomRenderer, mPieRenderer);
+            mGestures = new PreviewGestures(mActivity, this, mZoomRenderer, mPieRenderer, null);
             mRenderOverlay.setGestures(mGestures);
         }
         mGestures.setVideoMenu(mVideoMenu);
@@ -723,7 +723,7 @@ public class VideoUI implements PieRenderer.PieListener,
 
     public void updateOnScreenIndicators(Parameters param, ComboPreferences prefs) {
       mOnScreenIndicators.updateFlashOnScreenIndicator(param.getFlashMode());
-      boolean location = RecordLocationPreference.get(prefs);
+      boolean location = RecordLocationPreference.get(prefs, CameraSettings.KEY_RECORD_LOCATION);
       mOnScreenIndicators.updateLocationIndicator(location);
 
     }
@@ -1020,6 +1020,8 @@ public class VideoUI implements PieRenderer.PieListener,
         CameraUtil.fadeIn(mReviewPlayButton);
         mReviewImage.setVisibility(View.VISIBLE);
         mMenuButton.setVisibility(View.GONE);
+        mCameraControls.hideUI();
+        mVideoMenu.hideUI();
         mOnScreenIndicators.setVisibility(View.GONE);
     }
 
@@ -1027,6 +1029,8 @@ public class VideoUI implements PieRenderer.PieListener,
         mReviewImage.setVisibility(View.GONE);
         mShutterButton.setEnabled(true);
         mMenuButton.setVisibility(View.VISIBLE);
+        mCameraControls.showUI();
+        mVideoMenu.showUI();
         mOnScreenIndicators.setVisibility(View.VISIBLE);
         CameraUtil.fadeOut(mReviewDoneButton);
         CameraUtil.fadeOut(mReviewPlayButton);

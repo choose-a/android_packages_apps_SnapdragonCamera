@@ -862,5 +862,82 @@
         <item>@string/pref_camera_instant_capture_value_fast_aec</item>
         <item>@string/pref_camera_instant_capture_value_disable</item>
     </string-array>
+
+    <string-array name="pref_camera_bokeh_mode_entries" translatable="true">
+        <item>@string/pref_camera_bokeh_mode_entry_enable</item>
+        <item>@string/pref_camera_bokeh_mode_entry_disable</item>
+    </string-array>
+
+    <string-array name="pref_camera_bokeh_mode_entry_values" translatable="false">
+        <item>@string/pref_camera_bokeh_mode_entry_value_enable</item>
+        <item>@string/pref_camera_bokeh_mode_entry_value_disable</item>
+    </string-array>
+
+    <string-array name="pref_camera_bokeh_mpo_entries" translatable="true">
+        <item>@string/pref_camera_bokeh_mpo_entry_enable</item>
+        <item>@string/pref_camera_bokeh_mpo_entry_disable</item>
+    </string-array>
+
+    <string-array name="pref_camera_bokeh_mpo_entry_values" translatable="false">
+        <item>@string/pref_camera_bokeh_mpo_entry_value_enable</item>
+        <item>@string/pref_camera_bokeh_mpo_entry_value_disable</item>
+    </string-array>
+
+    <string-array name="pref_camera_bokeh_blur_degree_entries" translatable="true">
+        <item>0</item>
+        <item>10</item>
+        <item>20</item>
+        <item>30</item>
+        <item>40</item>
+        <item>50</item>
+        <item>60</item>
+        <item>70</item>
+        <item>80</item>
+        <item>90</item>
+        <item>100</item>
+    </string-array>
+
+    <string-array name="pref_camera_bokeh_blur_degree_entry_values" translatable="false">
+        <item>0</item>
+        <item>10</item>
+        <item>20</item>
+        <item>30</item>
+        <item>40</item>
+        <item>50</item>
+        <item>60</item>
+        <item>70</item>
+        <item>80</item>
+        <item>90</item>
+        <item>100</item>
+    </string-array>
+    <!-- Camera Preferences zoom dialog box entries -->
+    <string-array name="pref_camera_zoom_entries" translatable="false">
+        <item>@string/pref_camera_zoom_entry_off</item>
+        <item>@string/pref_camera_zoom_entry_1x</item>
+        <item>@string/pref_camera_zoom_entry_2x</item>
+        <item>@string/pref_camera_zoom_entry_3x</item>
+        <item>@string/pref_camera_zoom_entry_4x</item>
+        <item>@string/pref_camera_zoom_entry_5x</item>
+        <item>@string/pref_camera_zoom_entry_6x</item>
+        <item>@string/pref_camera_zoom_entry_7x</item>
+        <item>@string/pref_camera_zoom_entry_8x</item>
+        <item>@string/pref_camera_zoom_entry_9x</item>
+        <item>@string/pref_camera_zoom_entry_10x</item>
+    </string-array>
+
+    <string-array name="pref_camera_zoom_entryvalues" translatable="false">
+        <item>@string/pref_camera_zoom_default</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+    </string-array>
+
 </resources>
 

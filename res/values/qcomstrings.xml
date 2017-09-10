@@ -1,5 +1,5 @@
 <!--
-    Copyright (c) 2012-2014, 2016, The Linux Foundation. All rights reserved.
+    Copyright (c) 2012-2014, 2016-2017 The Linux Foundation. All rights reserved.
 
     Not a Contribution.
 
@@ -336,23 +336,23 @@
      <!-- Default mce setting. Do not translate. -->
      <string name="pref_camera_mce_default">enable</string>
 
-     <!-- The message is shown in toast when the app encounters an unsupported selection for HFR/HSR mode -->
-     <string name="error_app_unsupported_hfr_selection">HFR/HSR is not supported for Image Stabilization/TimeLapse/HDR</string>
+     <!-- The message is shown in toast when the app encounters an unsupported selection for Slow Motion/High FPS mode -->
+     <string name="error_app_unsupported_hfr_selection">Slow Motion/High FPS is not supported for Image Stabilization/TimeLapse/HDR</string>
 
-     <!-- The message is shown in dialog when the app encounters an unsupported resolution for HFR mode -->
-     <string name="error_app_unsupported_hfr">HFR is not supported for selected resolution</string>
+     <!-- The message is shown in dialog when the app encounters an unsupported resolution for Slow Motion mode -->
+     <string name="error_app_unsupported_hfr">Slow Motion is not supported for selected resolution</string>
 
      <!-- The message is shown in toast when the app encounters an unsupported resolution for DIS mode -->
      <string name="error_app_unsupported_dis">Unsupported video resolution for Image Stabilization</string>
 
      <!-- The message is shown in dialog when the app
-         encounters an unsupported resolution for HSR mode -->
+         encounters an unsupported resolution for High FPS mode -->
      <string name="error_app_unsupported_hsr">
-         HSR is not supported for selected resolution
+         High FPS is not supported for selected resolution
      </string>
 
-     <!-- The message is shown in dialog when the app encounters an unsupported video codec for HFR mode -->
-     <string name="error_app_unsupported_hfr_codec">Only H264 video encoding is supported when HFR is ON</string>
+     <!-- The message is shown in dialog when the app encounters an unsupported video codec for Slow Motion mode -->
+     <string name="error_app_unsupported_hfr_codec">Only H264 video encoding is supported when Slow Motion is ON</string>
 
      <!-- The message is shown in dialog when the app encounters an unsupported video resolution-->
      <string name="error_app_unsupported">Unsupported video resolution for this encoder type</string>
@@ -400,16 +400,16 @@
 
      <!-- Settings screen, hfr radio button choices -->
      <string name="pref_camera_hfr_entry_off">Off</string>
-     <string name="pref_camera_hfr_entry_2x">HFR 60</string>
-     <string name="pref_camera_hfr_entry_3x">HFR 90</string>
-     <string name="pref_camera_hfr_entry_4x">HFR 120</string>
-     <string name="pref_camera_hfr_entry_8x">HFR 240</string>
-     <string name="pref_camera_hfr_entry_hsr_60">HSR 60</string>
-     <string name="pref_camera_hfr_entry_hsr_90">HSR 90</string>
-     <string name="pref_camera_hfr_entry_hsr_120">HSR 120</string>
-     <string name="pref_camera_hfr_entry_hsr_240">HSR 240</string>
+     <string name="pref_camera_hfr_entry_2x">Slow Motion 60</string>
+     <string name="pref_camera_hfr_entry_3x">Slow Motion 90</string>
+     <string name="pref_camera_hfr_entry_4x">Slow Motion 120</string>
+     <string name="pref_camera_hfr_entry_8x">Slow Motion 240</string>
+     <string name="pref_camera_hfr_entry_hsr_60">High FPS 60</string>
+     <string name="pref_camera_hfr_entry_hsr_90">High FPS 90</string>
+     <string name="pref_camera_hfr_entry_hsr_120">High FPS 120</string>
+     <string name="pref_camera_hfr_entry_hsr_240">High FPS 240</string>
 
-     <!-- HFR entry values. Do not translate. -->
+     <!-- Slow Motion entry values. Do not translate. -->
      <string name="pref_camera_hfr_value_off">off</string>
      <string name="pref_camera_hfr_value_2x">hfr60</string>
      <string name="pref_camera_hfr_value_3x">hfr90</string>
@@ -999,7 +999,7 @@
     <string name="pref_camera2_scenemode_default" translatable="false">0</string>
     <string name="pref_camera2_whitebalance_default" translatable="false">1</string>
     <string name="pref_camera2_coloreffect_default" translatable="false">0</string>
-    <string name="pref_camera2_flashmode_default" translatable="false">2</string>
+    <string name="pref_camera2_flashmode_value_auto" translatable="false">auto</string>
 
     <string name="pref_camera2_makeup_title" translatable="true">Makeup</string>
 
@@ -1024,7 +1024,13 @@
     <string name="pref_camera2_videosnap_entry_disable" translatable="true">Disable</string>
     <string name="pref_camera2_trackingfocus_title" translatable="true">Tracking Focus</string>
     <string name="pref_camera_scenemode_entry_bestpicture" translatable="true">BestPicture</string>
-    <string name="bestpicture_done" translatable="true">DONE</string>
+    <string name="pref_camera_scenemode_entry_chromaflash" translatable="true">ChromaFlash</string>
+    <string name="pref_camera_scenemode_entry_blurbuster" translatable="true">BlurBuster</string>
+    <string name="pref_camera_scenemode_entry_sharpshooter" translatable="true">SharpPhoto</string>
+    <string name="pref_camera_scenemode_entry_trackingfocus" translatable="true">TrackingFocus</string>
+    <string name="pref_camera_scenemode_entry_panorama" translatable="true">Panorama</string>
+    <string name="pref_camera_scenemode_entry_promode" translatable="true">ProMode</string>
+    <string name="bestpicture_done" translatable="true">SAVE</string>
     <string name="bestpicture_at_least_one_picture" translatable="true">At least, one picture has to be chosen.</string>
 
     <string name="pref_camera2_shutter_sound_default" translatable="true">on</string>
@@ -1034,5 +1040,137 @@
     <string name="pref_camera2_shutter_sound_entry_on" translatable="true">On</string>
     <string name="pref_camera2_shutter_sound_entry_off" translatable="true">Off</string>
     <string name="pref_camera2_shutter_sound_title" translatable="true">Shutter Sound</string>
+
+    <string name="pref_camera2_timer_entry_off" translatable="true">Off</string>
+    <string name="pref_camera2_timer_entry_2sec" translatable="true">2 seconds</string>
+    <string name="pref_camera2_timer_entry_5sec" translatable="true">5 seconds</string>
+    <string name="pref_camera2_timer_entry_10sec" translatable="true">10 seconds</string>
+
+    <string name="pref_camera2_timer_value_off" translatable="false">0</string>
+    <string name="pref_camera2_timer_value_2sec" translatable="false">2</string>
+    <string name="pref_camera2_timer_value_5sec" translatable="false">5</string>
+    <string name="pref_camera2_timer_value_10sec" translatable="false">10</string>
+    <string name="pref_camera2_saveraw_default">disable</string>
+    <string name="pref_camera2_saveraw_title">Save with RAW format</string>
+    <string name="pref_camera2_saveraw_value_disable" translatable="false">disable</string>
+    <string name="pref_camera2_saveraw_value_enable" translatable="false">enable</string>
+
+    <string name="pref_camera2_saveraw_entry_disable">disable</string>
+    <string name="pref_camera2_saveraw_entry_enable">enable</string>
+
+    <string name="panocapture_direction_is_not_determined" translatable="true">Move constantly in one direciton.</string>
+    <string name="panocapture_intro" translatable="true">Press camera button to start.</string>
+    <string name="panocapture_direction_is_changed" translatable="true">Direction is changed. Stopping now...</string>
+    <string name="makeup_ui_title" translatable="true">Please choose the strength of the beautification.</string>
+    <string name="makeup_ui_ok_button" translatable="true">OK</string>
+    <string name="makeup_seekbar_low" translatable="true">low</string>
+    <string name="makeup_seekbar_high" translatable="true">high</string>
+
+    <string name="perf_camera2_version_info" translatable="true">Version Info</string>
+    <string name="perf_camera2_preferences_category_general" translatable="true">General</string>
+    <string name="perf_camera2_preferences_category_photo" translatable="true">Still camera</string>
+    <string name="perf_camera2_preferences_category_video" translatable="true">Video camera</string>
+    <string name="perf_camera2_preferences_category_system" translatable="true">System</string>
+
+    <string name="pref_camera2_scene_mode_dual_camera_instructional_content" translatable="true">In dual camera mode, your pictures will be clearer. You can also apply background effects, by editing your dual camera pictures in the Gallery.</string>
+    <string name="pref_camera2_scene_mode_ubi_focus_instructional_content"  translatable="true">With UbiFocus, your camera will take five pictures and combine them into one picture,where everything is in focus. You can choose to re-focus, after you take the picture.</string>
+    <string name="pref_camera2_scene_mode_opti_zoom_instructional_content"  translatable="true">Use Optizoom when you want to zoom in for a clear picture.You can zoom before, or after taking the picture.</string>
+    <string name="pref_camera2_scene_mode_sports_instructional_content"  translatable="true">Sports mode helps you take better sports or action shots.\n\nImporves your photos, but has no effect on video recording.</string>
+    <string name="pref_camera2_scene_mode_hdr_instructional_content"  translatable="true">When you are in mixed lighting conditions such as low light and backlit scenes select "HDR" for best possible pictures.</string>
+    <string name="pref_camera2_scene_mode_best_photo_instructional_content"  translatable="true">Allows you to take a burst of 10 photos, and you can choose the best one(s).</string>
+    <string name="pref_camera2_scene_mode_chroma_flash_instructional_content"  translatable="true">With ChromaFlash, the lighting in your flash photos will be optimized for all of the people and objects in your pictures.This feature applies only to the back camera.</string>
+    <string name="pref_camera2_scene_mode_sharp_photo_instructional_content"  translatable="true">Sharp Phot reduces blur that is due to motion in the scene, or due to hand motion.</string>
+    <string name="pref_camera2_scene_mode_tracking_focus_instructional_content"  translatable="true">Allows you to track and focus a selected person or object while taking pictures or videos. To start, position the focus rectangle on a person or object you want to track.</string>
+    <string name="pref_camera2_scene_mode_time_lapse_instructional_content"  translatable="true">With Time Lapse, you can transform a long video recording into a few seconds of video.This effect applies to videos, but not photos.</string>
+    <string name="pref_camera2_scene_mode_panorama_instructional_content"  translatable="true">Allows you to pan left or right to take a wide landscape photo. You can alse pan up or down to take tall photos.</string>
+    <string name="pref_camera2_scene_mode_blur_buster_instructional_content"  translatable="true">BlurBuster reduces blur from shaky hands.It can be helpful when taking photos in difficult places.</string>
+    <string name="pref_camera2_scene_mode_pro_instructional_content"  translatable="true">With Pro Mode, you can manually control settings for ISO,Exposure, White Balance, and Focus. You will have easy access to all of these advanced settings</string>
+
+    <string name="pref_camera2_not_show_again">Do not show again</string>
+    <string name="pref_camera2_scene_mode_instructional_ok" translatable="true">OK</string>
+
+    <string name="pref_camera2_instant_aec_title" translatable="true">Instant AEC</string>
+    <string name="pref_camera2_instant_aec_default" translatable="false">0</string>
+    <string name="pref_camera2_instant_aec_entry_disable" translatable="true">Disable</string>
+    <string name="pref_camera2_instant_aec_entry_aggressive" translatable="true">Aggressive AEC</string>
+    <string name="pref_camera2_instant_aec_entry_fast" translatable="true">Fast AEC</string>
+
+    <string name="pref_camera2_saturation_level_title" translatable="true">Saturation Level</string>
+    <string name="pref_camera2_saturation_level_default" translatable="false">5</string>
+    <string name="pref_camera2_saturation_level_entry_0" translatable="true">Level 0</string>
+    <string name="pref_camera2_saturation_level_entry_1" translatable="true">Level 1</string>
+    <string name="pref_camera2_saturation_level_entry_2" translatable="true">Level 2</string>
+    <string name="pref_camera2_saturation_level_entry_3" translatable="true">Level 3</string>
+    <string name="pref_camera2_saturation_level_entry_4" translatable="true">Level 4</string>
+    <string name="pref_camera2_saturation_level_entry_5" translatable="true">Level 5(Default)</string>
+    <string name="pref_camera2_saturation_level_entry_6" translatable="true">Level 6</string>
+    <string name="pref_camera2_saturation_level_entry_7" translatable="true">Level 7</string>
+    <string name="pref_camera2_saturation_level_entry_8" translatable="true">Level 8</string>
+    <string name="pref_camera2_saturation_level_entry_9" translatable="true">Level 9</string>
+    <string name="pref_camera2_saturation_level_entry_10" translatable="true">Level 10</string>
+
+    <string name="pref_camera2_anti_banding_level_title" translatable="true">Anti Banding Level</string>
+    <string name="pref_camera2_anti_banding_level_default" translatable="false">0</string>
+    <string name="pref_camera2_anti_banding_level_entry_off" translatable="true">Off</string>
+    <string name="pref_camera2_anti_banding_level_entry_50hz" translatable="true">50HZ</string>
+    <string name="pref_camera2_anti_banding_level_entry_60hz" translatable="true">60HZ</string>
+    <string name="pref_camera2_anti_banding_level_entry_auto" translatable="true">Auto</string>
+
+    <string name="pref_camera2_histogram_title" translatable="true">Histogram</string>
+    <string name="pref_camera2_histogram_default" translatable="false">disable</string>
+    <string name="pref_camera2_histogram_entry_enable" translatable="true">Enable</string>
+    <string name="pref_camera2_histogram_entry_disable" translatable="true">Disable</string>
+
+    <string name="pref_camera2_hdr_title" translatable="true">HDR &amp; Non-HDR</string>
+    <string name="pref_camera2_hdr_default" translatable="false">disable</string>
+    <string name="pref_camera2_hdr_entry_enable" translatable="true">Enable</string>
+    <string name="pref_camera2_hdr_entry_disable" translatable="true">Disable</string>
+
+    <string name="pref_camera2_auto_hdr_title" translatable="true">AUTO HDR</string>
+    <string name="pref_camera2_auto_hdr_default" translatable="false">disable</string>
+    <string name="pref_camera2_auto_hdr_entry_enable" translatable="true">Enable</string>
+    <string name="pref_camera2_auto_hdr_entry_disable" translatable="true">Disable</string>
+
+    <string name="pref_camera_bokeh_mode_default" translatable="false">0</string>
+    <string name="pref_camera_bokeh_mode_title" translatable="true">Bokeh Mode</string>
+    <string name="pref_camera_bokeh_mode_entry_enable" translatable="true">Enable</string>
+    <string name="pref_camera_bokeh_mode_entry_disable" translatable="true">Disable</string>
+    <string name="pref_camera_bokeh_mode_entry_value_enable" translatable="false">1</string>
+    <string name="pref_camera_bokeh_mode_entry_value_disable" translatable="false">0</string>
+
+    <string name="pref_camera_bokeh_mpo_default" translatable="false">0</string>
+    <string name="pref_camera_bokeh_mpo_title" translatable="true">Bokeh Mode MPO</string>
+    <string name="pref_camera_bokeh_mpo_entry_enable" translatable="true">Enable</string>
+    <string name="pref_camera_bokeh_mpo_entry_disable" translatable="true">Disable</string>
+    <string name="pref_camera_bokeh_mpo_entry_value_enable" translatable="false">1</string>
+    <string name="pref_camera_bokeh_mpo_entry_value_disable" translatable="false">0</string>
+
+    <string name="pref_camera_bokeh_blur_degree_default" translatable="false">50</string>
+    <string name="pref_camera_bokeh_blur_degree_title" translatable="true">Bokeh Blur Value</string>
+    <!-- Default Zoom setting. -->
+    <string name="pref_camera_zoom_default" translatable="false">0</string>
+    <string name="pref_camera_zoom_title">Zoom</string>
+    <!-- Settings menu, Zoom choices -->
+    <string name="pref_camera_zoom_entry_off">Off</string>
+    <string name="pref_camera_zoom_entry_1x">1x</string>
+    <string name="pref_camera_zoom_entry_2x">2x</string>
+    <string name="pref_camera_zoom_entry_3x">3x</string>
+    <string name="pref_camera_zoom_entry_4x">4x</string>
+    <string name="pref_camera_zoom_entry_5x">5x</string>
+    <string name="pref_camera_zoom_entry_6x">6x</string>
+    <string name="pref_camera_zoom_entry_7x">7x</string>
+    <string name="pref_camera_zoom_entry_8x">8x</string>
+    <string name="pref_camera_zoom_entry_9x">9x</string>
+    <string name="pref_camera_zoom_entry_10x">10x</string>
+    <string name="pref_camera2_bsgc_title" translatable="true">Smile/blink/gaze Detection</string>
+    <string name="pref_camera2_bsgc_default" translatable="false">disable</string>
+    <string name="pref_camera2_bsgc_entry_enable" translatable="true">Enable</string>
+    <string name="pref_camera2_bsgc_entry_disable" translatable="true">Disable</string>
+    <string name="pref_camera2_bsgc_entry_value_enable" translatable="false">enable</string>
+    <string name="pref_camera2_bsgc_entry_value_disable" translatable="false">disable</string>
+    <string name="pref_camera2_zsl_title" translatable="true">ZSL</string>
+    <string name="pref_camera2_zsl_default" translatable="false">enable</string>
+    <string name="pref_camera2_zsl_entry_enable" translatable="true">Enable</string>
+    <string name="pref_camera2_zsl_entry_disable" translatable="true">Disable</string>
 </resources>
 

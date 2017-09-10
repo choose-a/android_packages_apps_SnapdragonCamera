@@ -31,6 +31,7 @@ package com.android.camera.imageprocessor;
 
 import android.app.Activity;
 import android.graphics.ImageFormat;
+import android.hardware.camera2.CameraCharacteristics;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
@@ -39,6 +40,7 @@ import android.renderscript.Allocation;
 import android.renderscript.Element;
 import android.renderscript.RenderScript;
 import android.renderscript.Type;
+import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.widget.Toast;
@@ -96,15 +98,16 @@ public class FrameProcessor {
         mModule = module;
         mPreviewFilters = new ArrayList<ImageFilter>();
         mFinalFilters = new ArrayList<ImageFilter>();
+
+        mRs = RenderScript.create(mActivity);
+        mRsYuvToRGB = new ScriptC_YuvToRgb(mRs);
+        mRsRotator = new ScriptC_rotator(mRs);
     }
 
-    public void init(Size previewDim) {
+    private void init(Size previewDim) {
         mIsActive = true;
         mSize = previewDim;
         synchronized (mAllocationLock) {
-            mRs = RenderScript.create(mActivity);
-            mRsYuvToRGB = new ScriptC_YuvToRgb(mRs);
-            mRsRotator = new ScriptC_rotator(mRs);
             mInputImageReader = ImageReader.newInstance(mSize.getWidth(), mSize.getHeight(), ImageFormat.YUV_420_888, 8);
 
             Type.Builder rgbTypeBuilder = new Type.Builder(mRs, Element.RGBA_8888(mRs));
@@ -152,7 +155,15 @@ public class FrameProcessor {
         mRsRotator.set_width(width);
         mRsRotator.set_height(height);
         mRsRotator.set_pad(stridePad);
-        mRsRotator.set_gFlip(!mModule.isBackCamera());
+        int degree = 90;
+        if(mModule.getMainCameraCharacteristics() != null) {
+            degree = mModule.getMainCameraCharacteristics().
+                    get(CameraCharacteristics.SENSOR_ORIENTATION);
+            if (mModule.getMainCameraId() == CaptureModule.FRONT_ID) {
+                degree = Math.abs(degree - 90);
+            }
+        }
+        mRsRotator.set_degree(degree);
         mRsYuvToRGB.set_gIn(mProcessAllocation);
         mRsYuvToRGB.set_width(height);
         mRsYuvToRGB.set_height(width);
@@ -177,12 +188,15 @@ public class FrameProcessor {
         mFinalFilters = new ArrayList<ImageFilter>();
     }
 
-    public void onOpen(ArrayList<Integer> filterIds) {
+    public void onOpen(ArrayList<Integer> filterIds, final Size size) {
         cleanFilterSet();
         if (filterIds != null) {
             for (Integer i : filterIds) {
                 addFilter(i.intValue());
             }
+        }
+        if(isFrameFilterEnabled() || isFrameListnerEnabled()) {
+            init(size);
         }
     }
 
@@ -220,10 +234,6 @@ public class FrameProcessor {
                     mVideoOutputAllocation.destroy();
                 }
             }
-            if (mRs != null) {
-                mRs.destroy();
-            }
-            mRs = null;
             mProcessAllocation = null;
             mOutputAllocation = null;
             mInputAllocation = null;
@@ -264,6 +274,13 @@ public class FrameProcessor {
         }
     }
 
+    public void onDestory(){
+        if (mRs != null) {
+            mRs.destroy();
+        }
+        mRs = null;
+    }
+
     private Surface getReaderSurface() {
         synchronized (mAllocationLock) {
             if (mInputImageReader == null) {
@@ -294,6 +311,13 @@ public class FrameProcessor {
 
     public boolean isFrameFilterEnabled() {
         if (mFinalFilters.size() == 0) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean isFrameListnerEnabled() {
+        if (mPreviewFilters.size() == 0) {
             return false;
         }
         return true;

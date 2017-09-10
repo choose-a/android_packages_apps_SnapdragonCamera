@@ -38,19 +38,19 @@ import android.util.Log;
 import android.util.Range;
 
 import com.android.camera.CaptureModule;
+import com.android.camera.util.PersistUtil;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class StillmoreFilter implements ImageFilter{
-    public static final int NUM_REQUIRED_IMAGE = 5;
+    public static final int NUM_REQUIRED_IMAGE = PersistUtil.getStillmoreNumRequiredImages();
     private int mWidth;
     private int mHeight;
     private int mStrideY;
     private int mStrideVU;
     private static String TAG = "StillmoreFilter";
-    private static final boolean DEBUG = false;
     private static boolean mIsSupported = false;
     private ByteBuffer mOutBuf;
     private CaptureModule mModule;
@@ -100,6 +100,13 @@ public class StillmoreFilter implements ImageFilter{
         Log("width: "+mWidth+" height: "+mHeight+" strideY: "+mStrideY+" strideVU: "+mStrideVU);
         nativeInit(mWidth, mHeight, mStrideY, mStrideVU,
                 0, 0, mWidth, mHeight, NUM_REQUIRED_IMAGE);
+        float brColor = PersistUtil.getStillmoreBrColor();
+        float brIntensity = PersistUtil.getStillmoreBrIntensity();
+        float smoothingintensity = PersistUtil.getStillmoreSmoothingIntensity();
+        nativeConfigureStillMore(brColor, brIntensity, smoothingintensity);
+        Log("ConfigureStillmore brColor: " + brColor + " brIntensity: " +
+                brIntensity + " smoothingintensity: " + smoothingintensity +
+                " NUM_REQUIRED_IMAGE: " + NUM_REQUIRED_IMAGE);
     }
 
     @Override
@@ -157,6 +164,8 @@ public class StillmoreFilter implements ImageFilter{
         return mIsSupported;
     }
 
+    private native int nativeConfigureStillMore(float brColor, float brIntensity,
+                                                float smoothingintensity);
     private native int nativeInit(int width, int height, int yStride, int vuStride,
                                    int roiX, int roiY, int roiW, int roiH, int numImages);
     private native int nativeDeinit();

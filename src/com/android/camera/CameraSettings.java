@@ -23,6 +23,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Parameters;
@@ -130,6 +131,11 @@ public class CameraSettings {
 
     public static final String KEY_LONGSHOT = "pref_camera_longshot_key";
     public static final String KEY_INSTANT_CAPTURE = "pref_camera_instant_capture_key";
+    public static final String KEY_ZOOM = "pref_camera_zoom_key";
+
+    public static final String KEY_BOKEH_MODE = "pref_camera_bokeh_mode_key";
+    public static final String KEY_BOKEH_MPO = "pref_camera_bokeh_mpo_key";
+    public static final String KEY_BOKEH_BLUR_VALUE = "pref_camera_bokeh_blur_degree_key";
 
     public static final String KEY_GRID = "pref_grid";
 
@@ -247,6 +253,14 @@ public class CameraSettings {
     public static final String KEY_QC_SUPPORTED_MANUAL_EXPOSURE_MODES = "manual-exposure-modes";
     public static final String KEY_QC_SUPPORTED_MANUAL_WB_MODES = "manual-wb-modes";
 
+    //Bokeh
+    public static final String KEY_QC_IS_BOKEH_MODE_SUPPORTED = "is-bokeh-supported";
+    public static final String KEY_QC_IS_BOKEH_MPO_SUPPORTED = "is-bokeh-mpo-supported";
+    public static final String KEY_QC_BOKEH_MODE = "bokeh-mode";
+    public static final String KEY_QC_BOKEH_MPO_MODE = "bokeh-mpo-mode";
+    public static final String KEY_QC_SUPPORTED_DEGREES_OF_BLUR = "supported-blur-degrees";
+    public static final String KEY_QC_BOKEH_BLUR_VALUE = "bokeh-blur-value";
+
     public static final String KEY_TS_MAKEUP_UILABLE       = "pref_camera_tsmakeup_key";
     public static final String KEY_TS_MAKEUP_PARAM         = "tsmakeup"; // on/of
     public static final String KEY_TS_MAKEUP_PARAM_WHITEN  = "tsmakeup_whiten"; // 0~100
@@ -287,6 +301,8 @@ public class CameraSettings {
             VIDEO_ENCODER_TABLE = new HashMap<Integer, String>();
     public static final HashMap<String, Integer>
             VIDEO_QUALITY_TABLE = new HashMap<String, Integer>();
+    public static final HashMap<String, Integer>
+            VIDEO_ENCODER_BITRATE = new HashMap<String, Integer>();
 
     static {
         //video encoders
@@ -313,6 +329,14 @@ public class CameraSettings {
         VIDEO_QUALITY_TABLE.put("352x288",   CamcorderProfile.QUALITY_CIF);
         VIDEO_QUALITY_TABLE.put("320x240",   CamcorderProfile.QUALITY_QVGA);
         VIDEO_QUALITY_TABLE.put("176x144",   CamcorderProfile.QUALITY_QCIF);
+
+        //video encoder bitrate
+        VIDEO_ENCODER_BITRATE.put("1920x1080:60",  32000000);
+        VIDEO_ENCODER_BITRATE.put("1920x1080:120", 50000000);
+        VIDEO_ENCODER_BITRATE.put("1280x720:120",  35000000);
+        VIDEO_ENCODER_BITRATE.put("1280x720:240",  72000000);
+        VIDEO_ENCODER_BITRATE.put("720:480:120",   5200000);
+
    }
 
    // Following maps help find a corresponding time-lapse or high-speed quality
@@ -702,6 +726,18 @@ public class CameraSettings {
 
     }
 
+    private static List<String> getSupportedZoomLevel(Parameters params) {
+        ArrayList<String> supported = new ArrayList<String>();
+        int zoomMaxIdx = params.getMaxZoom();
+        List <Integer>  zoomRatios = params.getZoomRatios();
+        int zoomMax = zoomRatios.get(zoomMaxIdx)/100;
+
+        for (int zoomLevel = 0; zoomLevel <= zoomMax; zoomLevel++) {
+            supported.add(String.valueOf(zoomLevel));
+        }
+        return supported;
+    }
+
     private static ListPreference removeLeadingISO(ListPreference pref) {
         CharSequence entryValues[] = pref.getEntryValues();
         if (entryValues.length > 0) {
@@ -756,6 +792,11 @@ public class CameraSettings {
         ListPreference manualExposure = group.findPreference(KEY_MANUAL_EXPOSURE);
         ListPreference manualWB = group.findPreference(KEY_MANUAL_WB);
         ListPreference instantCapture = group.findPreference(KEY_INSTANT_CAPTURE);
+        ListPreference bokehMode = group.findPreference(KEY_BOKEH_MODE);
+        ListPreference bokehMpo = group.findPreference(KEY_BOKEH_MPO);
+        ListPreference bokehBlurDegree = group.findPreference(KEY_BOKEH_BLUR_VALUE);
+        ListPreference zoomLevel = group.findPreference(KEY_ZOOM);
+
 
         if (instantCapture != null) {
             if (!isInstantCaptureSupported(mParameters)) {
@@ -763,7 +804,20 @@ public class CameraSettings {
             }
         }
 
-        // Remove leading ISO from iso-values
+        if (bokehMode != null) {
+            if (!isBokehModeSupported(mParameters)) {
+                removePreference(group, bokehMode.getKey());
+                removePreference(group, bokehBlurDegree.getKey());
+            }
+        }
+
+        if (bokehMpo != null) {
+            if (!isBokehMPOSupported(mParameters)) {
+                removePreference(group, bokehMpo.getKey());
+            }
+        }
+
+       // Remove leading ISO from iso-values
         boolean isoValuesUseNumbers = mContext.getResources().getBoolean(R.bool.iso_values_use_numbers);
         if (isoValuesUseNumbers && mIso != null) {
             mIso = removeLeadingISO(mIso);
@@ -921,6 +975,11 @@ public class CameraSettings {
         if (manualExposure != null) {
             filterUnsupportedOptions(group,
                     manualExposure, getSupportedManualExposureModes(mParameters));
+        }
+
+        if (zoomLevel != null) {
+            filterUnsupportedOptions(group,
+                    zoomLevel, getSupportedZoomLevel(mParameters));
         }
 
         if (zsl != null) {
@@ -1131,9 +1190,9 @@ public class CameraSettings {
             return;
         }
 
-        if (numOfCameras > 2 ) {
-            numOfCameras = 2;
-        }
+//        if (numOfCameras > 2 ) {
+//            numOfCameras = 2;
+//        }
 
         CharSequence[] entryValues = new CharSequence[numOfCameras];
         for (int i = 0; i < numOfCameras; ++i) {
@@ -1159,33 +1218,35 @@ public class CameraSettings {
         return false;
     }
 
-    public static void filterUnsupportedOptions(PreferenceGroup group,
+    private static boolean filterUnsupportedOptions(PreferenceGroup group,
             ListPreference pref, List<String> supported) {
 
         // Remove the preference if the parameter is not supported or there is
         // only one options for the settings.
         if (supported == null || supported.size() <= 1) {
             removePreference(group, pref.getKey());
-            return;
+            return true;
         }
 
         pref.filterUnsupported(supported);
         if (pref.getEntries().length <= 1) {
             removePreference(group, pref.getKey());
-            return;
+            return true;
         }
 
         resetIfInvalid(pref);
+        return false;
     }
 
-    public static void filterSimilarPictureSize(PreferenceGroup group,
+    private static boolean filterSimilarPictureSize(PreferenceGroup group,
             ListPreference pref) {
         pref.filterDuplicated();
         if (pref.getEntries().length <= 1) {
             removePreference(group, pref.getKey());
-            return;
+            return true;
         }
         resetIfInvalid(pref);
+        return false;
     }
 
     static void resetIfInvalid(ListPreference pref) {
@@ -1536,6 +1597,37 @@ public class CameraSettings {
             }
         }
         return ret;
+    }
+
+    public static boolean isBokehModeSupported(Parameters params) {
+        boolean ret = false;
+        if (null != params) {
+            String val = params.get(KEY_QC_IS_BOKEH_MODE_SUPPORTED);
+            if ("1".equals(val)) {
+                ret = true;
+            }
+        }
+        return ret;
+    }
+
+    public static boolean isBokehMPOSupported(Parameters params) {
+        boolean ret = false;
+        if (null != params) {
+            String val = params.get(KEY_QC_IS_BOKEH_MPO_SUPPORTED);
+            if ("1".equals(val)) {
+                ret = true;
+            }
+        }
+        return ret;
+    }
+
+    public static List<String> getSupportedDegreesOfBlur(Parameters params) {
+        String str = params.get(KEY_QC_SUPPORTED_DEGREES_OF_BLUR);
+        if (str == null) {
+            return null;
+        }
+        Log.d(TAG,"getSupportedDegreesOfBlur str =" +str);
+        return split(str);
     }
 
     // common aspect ratios used for bucketing camera picture sizes

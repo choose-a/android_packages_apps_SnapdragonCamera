@@ -19,6 +19,13 @@
     <style name="Theme.ProxyLauncher" parent="@android:Theme.Translucent.NoTitleBar">
     </style>
 
+    <style name="Theme.OneUISettings" parent="@android:style/Theme.Material.Light.NoActionBar.Fullscreen">
+        <item name="android:colorAccent">#5999e1</item>
+    </style>
+    <style name="Theme.Settings" parent="@android:style/Theme.Material.Light">
+        <item name="android:colorAccent">#5999e1</item>
+    </style>
+
     <style name="Theme.Camera" parent="Theme.CameraBase">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowActionBar">false</item>
@@ -262,6 +269,11 @@
         <item name="android:layout_height">@dimen/toggle_outer_size</item>
         <item name="android:scaleType">center</item>
     </style>
+    <style name="OneUIMenuButton">
+        <item name="android:layout_width">25dp</item>
+        <item name="android:layout_height">25dp</item>
+        <item name="android:scaleType">fitCenter</item>
+    </style>
     <style name="MenuIndicator">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -306,5 +318,25 @@
     </style>
     <style name="PanoViewHorizontalBar">
         <item name="android:background">@android:color/transparent</item>
+    </style>
+
+    <style name="OnViewfinderSceneLabel">
+        <item name="android:gravity">center</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">10dp</item>
+        <item name="android:layout_marginRight">10dp</item>
+        <item name="android:layout_marginTop">5dp</item>
+        <item name="android:layout_marginBottom">5dp</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">16dp</item>
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+    <style name="BestPhoneOverflow">
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">18sp</item>
     </style>
 </resources>

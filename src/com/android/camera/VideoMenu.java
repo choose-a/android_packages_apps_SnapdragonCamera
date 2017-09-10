@@ -142,9 +142,9 @@ public class VideoMenu extends MenuController
                 CameraSettings.KEY_VIDEO_CDS_MODE,
                 CameraSettings.KEY_VIDEO_TNR_MODE,
                 CameraSettings.KEY_VIDEO_SNAPSHOT_SIZE,
+                CameraSettings.KEY_ZOOM,
                 CameraSettings.KEY_GRID
         };
-        mFrontBackSwitcher.setVisibility(View.INVISIBLE);
         initSwitchItem(CameraSettings.KEY_CAMERA_ID, mFrontBackSwitcher);
     }
 
@@ -485,7 +485,6 @@ public class VideoMenu extends MenuController
             resid = pref.getSingleIcon();
         }
         ((ImageView) switcher).setImageResource(resid);
-        switcher.setVisibility(View.VISIBLE);
         mPreferences.add(pref);
         mPreferenceMap.put(pref, switcher);
         switcher.setOnClickListener(new OnClickListener() {
@@ -683,6 +682,7 @@ public class VideoMenu extends MenuController
         overrideMenuFor4K();
         overrideMenuForCDSMode();
         overrideMenuForSeeMore();
+        overrideMenuForVideoHighFrameRate();
     }
 
     private void overrideMenuForLocation() {
@@ -766,6 +766,49 @@ public class VideoMenu extends MenuController
 
     }
 
+    private void overrideMenuForVideoHighFrameRate() {
+        ListPreference disPref = mPreferenceGroup
+                .findPreference(CameraSettings.KEY_DIS);
+        ListPreference frameIntervalPref = mPreferenceGroup
+                .findPreference(CameraSettings.KEY_VIDEO_TIME_LAPSE_FRAME_INTERVAL);
+        ListPreference videoHDRPref = mPreferenceGroup
+                .findPreference(CameraSettings.KEY_VIDEO_HDR);
+        String disMode;
+        if (disPref != null && disPref.getValue() != null) {
+                disMode = disPref.getValue();
+        } else {
+                disMode = "";
+        }
+        String videoHDR = videoHDRPref == null ? "off" : videoHDRPref.getValue();
+        String frameIntervalStr = frameIntervalPref.getValue();
+        int timeLapseInterval = Integer.parseInt(frameIntervalStr);
+        int PERSIST_EIS_MAX_FPS =  android.os.SystemProperties
+                .getInt("persist.camcorder.eis.maxfps", 30);
+        ListPreference hfrPref = mPreferenceGroup
+                .findPreference(CameraSettings.KEY_VIDEO_HIGH_FRAME_RATE);
+        String highFrameRate;
+        if (hfrPref == null) {
+            //If hfrPref is null, use whitespace instead.
+            highFrameRate = "     ";
+        } else {
+            highFrameRate = hfrPref.getValue();
+        }
+        boolean isHFR = "hfr".equals(highFrameRate.substring(0,3));
+        boolean isHSR = "hsr".equals(highFrameRate.substring(0,3));
+        int rate = 0;
+        if ( isHFR || isHSR ) {
+            String hfrRate = highFrameRate.substring(3);
+            rate = Integer.parseInt(hfrRate);
+        }
+
+        if ((disMode.equals("enable") && rate > PERSIST_EIS_MAX_FPS)
+                || !videoHDR.equals("off")
+                || timeLapseInterval != 0) {
+            mListMenu.setPreferenceEnabled(CameraSettings.KEY_VIDEO_HIGH_FRAME_RATE, false);
+        }
+
+    }
+
     @Override
     public void overrideSettings(final String... keyvalues) {
         super.overrideSettings(keyvalues);
@@ -799,6 +842,7 @@ public class VideoMenu extends MenuController
         mListMenu = popup1;
 
         overridePreferenceAccessibility();
+        overrideMenuForVideoHighFrameRate();
     }
 
     public void popupDismissed(boolean topPopupOnly) {

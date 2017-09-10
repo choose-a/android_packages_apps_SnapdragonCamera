@@ -16,16 +16,20 @@
 
 package com.android.camera;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera.CameraInfo;
@@ -49,6 +53,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.MessageQueue;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -81,6 +86,7 @@ import com.android.camera.ui.RotateTextToast;
 import com.android.camera.util.ApiHelper;
 import com.android.camera.util.CameraUtil;
 import com.android.camera.util.GcamHelper;
+import com.android.camera.util.PersistUtil;
 import com.android.camera.util.UsageStatistics;
 import org.codeaurora.snapcam.R;
 
@@ -221,6 +227,7 @@ public class PhotoModule
     private static final String PERSIST_CAPTURE_ANIMATION = "persist.camera.capture.animate";
     private static final boolean PERSIST_SKIP_MEM_CHECK =
             android.os.SystemProperties.getBoolean("persist.camera.perf.skip_memck", false);
+    private static final String PERSIST_ZZHDR_ENABLE="persist.camera.zzhdr.enable";
 
     private static final int MINIMUM_BRIGHTNESS = 0;
     private static final int MAXIMUM_BRIGHTNESS = 6;
@@ -230,6 +237,7 @@ public class PhotoModule
     private ProgressBar brightnessProgressBar;
     // Constant from android.hardware.Camera.Parameters
     private static final String KEY_PICTURE_FORMAT = "picture-format";
+    private SeekBar mBlurDegreeProgressBar;
     private static final String KEY_QC_RAW_PICUTRE_SIZE = "raw-size";
     public static final String PIXEL_FORMAT_JPEG = "jpeg";
 
@@ -360,6 +368,8 @@ public class PhotoModule
     private float[] mR = new float[16];
     private int mHeading = -1;
 
+    private static final int MAX_ZOOM = 10;
+    private int[] mZoomIdxTbl = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
     // True if all the parameters needed to start preview is ready.
     private boolean mCameraPreviewParamsReady = false;
 
@@ -597,6 +607,9 @@ public class PhotoModule
         mUI.getCameraControls().setCameraActivity(mActivity);
 
         brightnessProgressBar = (ProgressBar)mRootView.findViewById(R.id.progress);
+        mBlurDegreeProgressBar = (SeekBar)mRootView.findViewById(R.id.blur_degree_bar);
+        mBlurDegreeProgressBar.setOnSeekBarChangeListener(mBlurDegreeListener);
+        mBlurDegreeProgressBar.setMax(100);
         if (brightnessProgressBar instanceof SeekBar) {
             SeekBar seeker = (SeekBar) brightnessProgressBar;
             seeker.setOnSeekBarChangeListener(mSeekListener);
@@ -634,9 +647,15 @@ public class PhotoModule
     // Prompt the user to pick to record location for the very first run of
     // camera only
     private void locationFirstRun() {
+        boolean enableRecordingLocation = false;
+        if (mActivity.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            enableRecordingLocation = true;
+        }
         /* Do not prompt if the preference is already set, this is a secure
          * camera session, or the prompt has already been triggered. */
-        if (RecordLocationPreference.isSet(mPreferences) ||
+        if ((RecordLocationPreference.isSet(
+                mPreferences, CameraSettings.KEY_RECORD_LOCATION) && enableRecordingLocation) ||
                 mActivity.isSecureCamera() || mLocationPromptTriggered) {
             return;
         }
@@ -652,7 +671,7 @@ public class PhotoModule
         /* Enable the location at the begining, always.
            If the user denies the permission, it will be disabled
            right away due to exception */
-        enableRecordingLocation(true);
+        enableRecordingLocation(enableRecordingLocation);
     }
 
     @Override
@@ -665,6 +684,12 @@ public class PhotoModule
         setLocationPreference(enable ? RecordLocationPreference.VALUE_ON
                 : RecordLocationPreference.VALUE_OFF);
         mLocationManager.recordLocation(enable);
+    }
+
+    @Override
+    public void setPreferenceForTest(String key, String value) {
+        mUI.setPreference(key, value);
+        onSharedPreferenceChanged();
     }
 
     @Override
@@ -924,7 +949,8 @@ public class PhotoModule
         mApplicationContext = CameraApp.getContext();
 
         // Initialize location service.
-        boolean recordLocation = RecordLocationPreference.get(mPreferences);
+        boolean recordLocation = RecordLocationPreference.get(mPreferences,
+                CameraSettings.KEY_RECORD_LOCATION);
         mLocationManager.recordLocation(recordLocation);
 
         mUI.initializeFirstTime();
@@ -955,7 +981,8 @@ public class PhotoModule
     // onResume.
     private void initializeSecondTime() {
         // Start location update if needed.
-        boolean recordLocation = RecordLocationPreference.get(mPreferences);
+        boolean recordLocation = RecordLocationPreference.get(mPreferences,
+                CameraSettings.KEY_RECORD_LOCATION);
         mLocationManager.recordLocation(recordLocation);
         MediaSaveService s = mActivity.getMediaSaveService();
         if (s != null) {
@@ -1134,7 +1161,7 @@ public class PhotoModule
                     }
                 });
             }
-            if (mRefocus) {
+            if (mRefocus && isShutterSoundOn()) {
                 mSoundPool.play(mRefocusSound, 1.0f, 1.0f, 0, 0, 1.0f);
             }
         }
@@ -1273,6 +1300,7 @@ public class PhotoModule
             if ( srcFile.renameTo(dstFile) ) {
                 Size s = mParameters.getPictureSize();
                 String pictureFormat = mParameters.get(KEY_PICTURE_FORMAT);
+                Log.d(TAG, "capture:" + title + "." + pictureFormat);
                 mActivity.getMediaSaveService().addImage(
                        null, title, date, mLocation, s.width, s.height,
                        0, null, mOnMediaSavedListener, mContentResolver, pictureFormat);
@@ -1282,10 +1310,17 @@ public class PhotoModule
         }
     }
 
-    private byte[] flipJpeg(byte[] jpegData) {
+    private byte[] flipJpeg(byte[] jpegData, int orientation, int jpegOrientation) {
         Bitmap srcBitmap = BitmapFactory.decodeByteArray(jpegData, 0, jpegData.length);
         Matrix m = new Matrix();
-        m.preScale(-1, 1);
+        if(orientation == 270 || orientation == 90) {
+            // Judge whether the picture or phone is horizontal screen
+            if (jpegOrientation == 0 || jpegOrientation == 180) {
+                m.preScale(-1, 1);
+            } else { // the picture or phone is Vertical screen
+                m.preScale(1, -1);
+            }
+        }
         Bitmap dstBitmap = Bitmap.createBitmap(srcBitmap, 0, 0, srcBitmap.getWidth(), srcBitmap.getHeight(), m, false);
         dstBitmap.setDensity(DisplayMetrics.DENSITY_DEFAULT);
         int size = dstBitmap.getWidth() * dstBitmap.getHeight();
@@ -1293,6 +1328,18 @@ public class PhotoModule
         dstBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outStream);
 
         return outStream.toByteArray();
+    }
+
+    public static byte[] addExifTags(byte[] jpeg, int orientationInDegree) {
+        ExifInterface exif = new ExifInterface();
+        exif.addOrientationTag(orientationInDegree);
+        ByteArrayOutputStream jpegOut = new ByteArrayOutputStream();
+        try {
+            exif.writeExif(jpeg, jpegOut);
+        } catch (IOException e) {
+            Log.e(TAG, "Could not write EXIF", e);
+        }
+        return jpegOut.toByteArray();
     }
 
     private final class JpegPictureCallback
@@ -1419,9 +1466,8 @@ public class PhotoModule
                             .findPreference(CameraSettings.KEY_SELFIE_MIRROR);
                     if (selfieMirrorPref != null && selfieMirrorPref.getValue() != null &&
                             selfieMirrorPref.getValue().equalsIgnoreCase("enable")) {
-                        jpegData = flipJpeg(jpegData);
-                        exif = Exif.getExif(jpegData);
-                        exif.addOrientationTag(orientation);
+                        jpegData = flipJpeg(jpegData, info.orientation, orientation);
+                        jpegData = addExifTags(jpegData, orientation);
                     }
                 }
                 if (!mIsImageCaptureIntent) {
@@ -1481,6 +1527,7 @@ public class PhotoModule
                             exif.setTag(directionTag);
                         }
                         String mPictureFormat = mParameters.get(KEY_PICTURE_FORMAT);
+                         Log.d(TAG, "capture:" + title + "." + mPictureFormat);
                             mActivity.getMediaSaveService().addImage(
                                     jpegData, title, date, mLocation, width, height,
                                     orientation, exif, mOnMediaSavedListener,
@@ -1559,11 +1606,28 @@ public class PhotoModule
 
     private OnSeekBarChangeListener mSeekListener = new OnSeekBarChangeListener() {
         public void onStartTrackingTouch(SeekBar bar) {
-        // no support
+            // no support
         }
         public void onProgressChanged(SeekBar bar, int progress, boolean fromtouch) {
         }
         public void onStopTrackingTouch(SeekBar bar) {
+        }
+    };
+
+    private OnSeekBarChangeListener mBlurDegreeListener = new OnSeekBarChangeListener() {
+        public void onStartTrackingTouch(SeekBar bar) {
+        }
+        public void onProgressChanged(SeekBar bar, int progress, boolean fromtouch) {
+            if (mParameters != null) {
+                mParameters.set(CameraSettings.KEY_QC_BOKEH_BLUR_VALUE, progress);
+            }
+            Log.d(TAG,"seekbar bokeh degree = "+ progress);
+        }
+        public void onStopTrackingTouch(SeekBar bar) {
+            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mActivity);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putInt(CameraSettings.KEY_BOKEH_BLUR_VALUE, bar.getProgress());
+            editor.apply();
         }
     };
 
@@ -1668,6 +1732,7 @@ public class PhotoModule
         // is full then ignore.
         if (mCameraDevice == null || mCameraState == SNAPSHOT_IN_PROGRESS
                 || mCameraState == SWITCHING_CAMERA
+                || mCameraState == PREVIEW_STOPPED
                 || mActivity.getMediaSaveService() == null
                 || mActivity.getMediaSaveService().isQueueFull()) {
             return false;
@@ -1973,7 +2038,9 @@ public class PhotoModule
             colorEffect = mParameters.getColorEffect();
             String defaultEffect = mActivity.getString(R.string.pref_camera_coloreffect_default);
             if (CameraUtil.SCENE_MODE_HDR.equals(mSceneMode)) {
-                disableLongShot = true;
+                if(SystemProperties.getInt(PERSIST_ZZHDR_ENABLE, 0) != 1) {
+                    disableLongShot = true;
+                }
                 if (colorEffect != null & !colorEffect.equals(defaultEffect)) {
                     // Change the colorEffect to default(None effect) when HDR ON.
                     colorEffect = defaultEffect;
@@ -2172,6 +2239,9 @@ public class PhotoModule
 
     @Override
     public void onStop() {}
+
+    @Override
+    public void onDestroy() {}
 
     @Override
     public void onCaptureCancelled() {
@@ -2377,7 +2447,7 @@ public class PhotoModule
             String zsl = mPreferences.getString(CameraSettings.KEY_ZSL,
                     mActivity.getString(R.string.pref_camera_zsl_default));
             mUI.overrideSettings(CameraSettings.KEY_ZSL, zsl);
-            mUI.startCountDown(seconds, isShutterSoundOn());
+            mUI.startCountDown(seconds, playSound);
         } else {
             mSnapshotOnIdle = false;
             initiateSnap();
@@ -2535,7 +2605,7 @@ public class PhotoModule
 
     private void updateRemainingPhotos() {
         if (mJpegFileSizeEstimation != 0) {
-            mRemainingPhotos = (int) 
+            mRemainingPhotos = (int)
                     ((mActivity.getStorageSpaceBytes() - Storage.LOW_STORAGE_THRESHOLD_BYTES)
                     / mJpegFileSizeEstimation);
         } else {
@@ -3006,7 +3076,7 @@ public class PhotoModule
         if (!mSnapshotOnIdle && !mInstantCaptureSnapShot) {
             // If the focus mode is continuous autofocus, call cancelAutoFocus to
             // resume it because it may have been paused by autoFocus call.
-            if (CameraUtil.FOCUS_MODE_CONTINUOUS_PICTURE.equals(mFocusManager.getFocusMode())) {
+            if (CameraUtil.FOCUS_MODE_CONTINUOUS_PICTURE.equals(mFocusManager.getFocusMode()) && mCameraState !=INIT) {
                 mCameraDevice.cancelAutoFocus();
             }
         } else {
@@ -3175,28 +3245,19 @@ public class PhotoModule
         String optizoomOn = mActivity.getString(R.string
                 .pref_camera_advanced_feature_value_optizoom_on);
 
-        if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode) ||
-            CameraUtil.SCENE_MODE_HDR.equals(mSceneMode) ||
-            optizoomOn.equals(mSceneMode)) {
-            // Set Touch AF/AEC parameter.
-            String touchAfAec = mPreferences.getString(
-                 CameraSettings.KEY_TOUCH_AF_AEC,
-                 mActivity.getString(R.string.pref_camera_touchafaec_default));
-            if (CameraUtil.isSupported(touchAfAec, mParameters.getSupportedTouchAfAec())) {
-                mCurrTouchAfAec = touchAfAec;
-                mParameters.setTouchAfAec(touchAfAec);
-            }
-        } else {
-            mParameters.setTouchAfAec(mParameters.TOUCH_AF_AEC_OFF);
-            mFocusManager.resetTouchFocus();
-        }
-        try {
+        // by default never disable touch focus
+        mTouchAfAecFlag = true;
+        // Set Touch AF/AEC parameter.
+        String touchAfAec = mPreferences.getString(
+                CameraSettings.KEY_TOUCH_AF_AEC,
+                mActivity.getString(R.string.pref_camera_touchafaec_default));
+        if (CameraUtil.isSupported(touchAfAec, mParameters.getSupportedTouchAfAec())) {
+            mCurrTouchAfAec = touchAfAec;
+            mParameters.setTouchAfAec(touchAfAec);
             if(mParameters.getTouchAfAec().equals(mParameters.TOUCH_AF_AEC_ON))
-                this.mTouchAfAecFlag = true;
+                mTouchAfAecFlag = true;
             else
-                this.mTouchAfAecFlag = false;
-        } catch(Exception e){
-            Log.e(TAG, "Handled NULL pointer Exception");
+                mTouchAfAecFlag = false;
         }
 
         // Set Picture Format
@@ -3681,7 +3742,6 @@ public class PhotoModule
                 + mInstantCaptureSnapShot);
         mParameters.set(CameraSettings.KEY_QC_INSTANT_CAPTURE, instantCapture);
 
-
         //Set Histogram
         String histogram = mPreferences.getString(
                 CameraSettings.KEY_HISTOGRAM,
@@ -3725,6 +3785,70 @@ public class PhotoModule
             !mFocusManager.isFocusCompleted()) {
             mUI.clearFocus();
         }
+
+        String bokehMode = mPreferences.getString(
+                CameraSettings.KEY_BOKEH_MODE,
+                mActivity.getString(R.string.pref_camera_bokeh_mode_default));
+        String bokehMpo = mPreferences.getString(
+                CameraSettings.KEY_BOKEH_MPO,
+                mActivity.getString(R.string.pref_camera_bokeh_mpo_default));
+        String bokehBlurDegree = mPreferences.getString(
+                CameraSettings.KEY_BOKEH_BLUR_VALUE,
+                mActivity.getString(R.string.pref_camera_bokeh_blur_degree_default));
+        CameraSettings.getSupportedDegreesOfBlur(mParameters);
+
+        if (!bokehMode.equals(mActivity.getString(
+                R.string.pref_camera_bokeh_mode_entry_value_disable))) {
+            if(!zsl.equals("on")) {
+                mParameters.setZSLMode("on");
+            }
+            if(mParameters.getSceneMode() != Parameters.SCENE_MODE_AUTO) {
+                mParameters.setSceneMode(Parameters.SCENE_MODE_AUTO);
+            }
+            if(mParameters.getFlashMode() != Parameters.FLASH_MODE_OFF) {
+                mParameters.setFlashMode(Parameters.FLASH_MODE_OFF);
+            }
+            if(mParameters.get("long-shot").equals(mActivity.getString(R.string.setting_on_value))) {
+                mParameters.set("long-shot",mActivity.getString(R.string.setting_off_value));
+            }
+            if(mManual3AEnabled != 0) {
+                mManual3AEnabled = 0;
+            }
+            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mActivity);
+            final  int degree = prefs.getInt(CameraSettings.KEY_BOKEH_BLUR_VALUE,50);
+            bokehBlurDegree = String.valueOf(degree);
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mUI.overrideSettings(CameraSettings.KEY_SCENE_MODE,
+                            mActivity.getString(R.string.pref_camera_scenemode_default));
+                    mUI.overrideSettings(CameraSettings.KEY_ZSL,
+                            mActivity.getString(R.string.pref_camera_zsl_value_on));
+                    mUI.overrideSettings(CameraSettings.KEY_FLASH_MODE, "off");
+                    mUI.overrideSettings(CameraSettings.KEY_LONGSHOT,
+                            mActivity.getString(R.string.pref_camera_longshot_default));
+                    mBlurDegreeProgressBar.setVisibility(View.VISIBLE);
+                    mBlurDegreeProgressBar.setProgress(degree);
+                }
+            });
+        } else {
+            bokehBlurDegree = "0";
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mUI.overrideSettings(CameraSettings.KEY_BOKEH_MPO,
+                            mActivity.getString(R.string.pref_camera_bokeh_mpo_default));
+                    mUI.overrideSettings(CameraSettings.KEY_BOKEH_BLUR_VALUE,
+                            mActivity.getString(R.string.pref_camera_bokeh_blur_degree_default));
+                    mBlurDegreeProgressBar.setVisibility(View.GONE);
+                }
+            });
+        }
+        mParameters.set(CameraSettings.KEY_QC_BOKEH_MODE, bokehMode);
+        mParameters.set(CameraSettings.KEY_QC_BOKEH_MPO_MODE, bokehMpo);
+        mParameters.set(CameraSettings.KEY_QC_BOKEH_BLUR_VALUE, bokehBlurDegree);
+        Log.v(TAG, "Bokeh Mode = " + bokehMode + " bokehMpo = " + bokehMpo +
+                " bokehBlurDegree = " + bokehBlurDegree);
     }
 
     private int estimateJpegFileSize(final Size size, final String quality) {
@@ -3814,6 +3938,61 @@ public class PhotoModule
             mParameters.setMeteringAreas(mFocusManager.getMeteringAreas());
         }
     }
+    private void setZoomMenuValue() {
+        String zoomMenuValue = mPreferences.getString(CameraSettings.KEY_ZOOM,
+                                mActivity.getString(R.string.pref_camera_zoom_default));
+        if (!zoomMenuValue.equals("0")) {
+            int zoomValue = Integer.parseInt(zoomMenuValue);
+            if (mZoomIdxTbl[0] == -1) {
+                /* update the index table once */
+                Log.d(TAG, "Update the zoom index table.");
+                List<Integer> zoomRatios = mParameters.getZoomRatios();
+                int lastZoomIdx = 0;
+                for (int zoom = 1; zoom <= MAX_ZOOM; zoom++) {
+                    int zoomIdx = zoomRatios.indexOf(zoom*100);
+                    if (zoomIdx == -1) {
+                       Log.d(TAG, "Can't find matching zoom value "+zoom);
+                       int nextZoom = 0;
+                       while ((++lastZoomIdx < zoomRatios.size()) &&
+                              (nextZoom < (zoom*100))){
+                           nextZoom = zoomRatios.get(lastZoomIdx);
+                           zoomIdx = lastZoomIdx;
+                       }
+                       if (lastZoomIdx < zoomRatios.size()) {
+                           zoomIdx = lastZoomIdx - 1;
+                       } else {
+                           break;
+                       }
+                    }
+                    mZoomIdxTbl[zoom-1] = zoomIdx;
+                    lastZoomIdx = zoomIdx;
+                }
+            }
+
+            if ((zoomValue <= mZoomIdxTbl.length) &&
+                (mZoomIdxTbl[zoomValue-1] != -1)) {
+                int step = 1;
+                int cur_zoom = mParameters.getZoom();
+                Log.d(TAG, "zoom index = "+mZoomIdxTbl[zoomValue-1]+", cur index = "+cur_zoom);
+                if (cur_zoom > mZoomIdxTbl[zoomValue-1]) {
+                    step = -1;
+                }
+
+                /* move zoom slowly */
+                while (cur_zoom != mZoomIdxTbl[zoomValue-1]) {
+                    cur_zoom += step;
+                    mParameters.setZoom(cur_zoom);
+                    try {
+                        Thread.sleep(25);
+                    } catch(InterruptedException e) {
+                    }
+                }
+                mParameters.setZoom(mZoomIdxTbl[zoomValue-1]);
+            } else {
+                Log.e(TAG, "Zoom value "+zoomValue+" is not supported!");
+            }
+        }
+    }
 
     /** This can run on a background thread, so don't do UI updates here.*/
     private boolean updateCameraParametersPreference() {
@@ -3856,43 +4035,14 @@ public class PhotoModule
         Size optimalSize = CameraUtil.getOptimalPreviewSize(mActivity, sizes,
                 (double) size.width / size.height);
 
-        //Read Preview Resolution from adb command
-        //value: 0(default) - Default value as per snapshot aspect ratio
-        //value: 1 - 640x480
-        //value: 2 - 720x480
-        //value: 3 - 1280x720
-        //value: 4 - 1920x1080
-        int preview_resolution = SystemProperties.getInt("persist.camera.preview.size", 0);
-        switch (preview_resolution) {
-            case 1: {
-                optimalSize.width = 640;
-                optimalSize.height = 480;
-                Log.v(TAG, "Preview resolution hardcoded to 640x480");
-                break;
-            }
-            case 2: {
-                optimalSize.width = 720;
-                optimalSize.height = 480;
-                Log.v(TAG, "Preview resolution hardcoded to 720x480");
-                break;
-            }
-            case 3: {
-                optimalSize.width = 1280;
-                optimalSize.height = 720;
-                Log.v(TAG, "Preview resolution hardcoded to 1280x720");
-                break;
-            }
-            case 4: {
-                optimalSize.width = 1920;
-                optimalSize.height = 1080;
-                Log.v(TAG, "Preview resolution hardcoded to 1920x1080");
-                break;
-            }
-            default: {
-                Log.v(TAG, "Preview resolution as per Snapshot aspect ratio");
-                break;
-            }
+        Point previewSize = PersistUtil.getCameraPreviewSize();
+        if (previewSize != null) {
+            optimalSize.width = previewSize.x;
+            optimalSize.height = previewSize.y;
         }
+
+        Log.e(TAG, "updateCameraParametersPreference final preview size = "
+                + optimalSize.width + ", " + optimalSize.height);
 
         Size original = mParameters.getPreviewSize();
         if (!original.equals(optimalSize)) {
@@ -3962,6 +4112,7 @@ public class PhotoModule
                 .pref_camera_advanced_feature_value_refocus_on);
         String optizoomOn = mActivity.getString(R.string
                 .pref_camera_advanced_feature_value_optizoom_on);
+        String scenModeStr = mSceneMode;
         if (refocusOn.equals(mSceneMode)) {
             try {
                 mSceneMode = Parameters.SCENE_MODE_AUTO;
@@ -3985,6 +4136,9 @@ public class PhotoModule
 
         if (CameraUtil.isSupported(mSceneMode, mParameters.getSupportedSceneModes())) {
             if (!mParameters.getSceneMode().equals(mSceneMode)) {
+                if (mHandler.getLooper() == Looper.myLooper()) {
+                    mUI.setPreference(CameraSettings.KEY_ADVANCED_FEATURES, scenModeStr);
+                }
                 mParameters.setSceneMode(mSceneMode);
 
                 // Setting scene mode will change the settings of flash mode,
@@ -4095,6 +4249,8 @@ public class PhotoModule
             mParameters.set(CameraSettings.KEY_TS_MAKEUP_PARAM_WHITEN, makeupWhitenValue);
             mParameters.set(CameraSettings.KEY_TS_MAKEUP_PARAM_CLEAN, makeupCleanValue);
         }
+
+        setZoomMenuValue();
 
         //QCom related parameters updated here.
         qcomUpdateCameraParametersPreference();
@@ -4707,6 +4863,15 @@ public class PhotoModule
             mUI.setPreference(CameraSettings.KEY_ADVANCED_FEATURES, pref.getValue());
         }
 
+        if (CameraSettings.KEY_ADVANCED_FEATURES.equals(pref.getKey())) {
+            mUI.setPreference(CameraSettings.KEY_QC_CHROMA_FLASH, pref.getValue());
+            mUI.setPreference(CameraSettings.KEY_SCENE_MODE, pref.getValue());
+        }
+
+        if (CameraSettings.KEY_CAMERA_HDR.equals(pref.getKey())) {
+            mUI.setPreference(CameraSettings.KEY_ADVANCED_FEATURES, pref.getValue());
+        }
+
         String ubiFocusOff = mActivity.getString(R.string.
                 pref_camera_advanced_feature_value_ubifocus_off);
         String chromaFlashOff = mActivity.getString(R.string.
@@ -4745,7 +4910,8 @@ public class PhotoModule
         // ignore the events after "onPause()"
         if (mPaused) return;
 
-        boolean recordLocation = RecordLocationPreference.get(mPreferences);
+        boolean recordLocation = RecordLocationPreference.get(mPreferences,
+                CameraSettings.KEY_RECORD_LOCATION);
         mLocationManager.recordLocation(recordLocation);
         if(needRestart()){
             Log.v(TAG, "Restarting Preview... Camera Mode Changed");
@@ -4854,6 +5020,10 @@ public class PhotoModule
         if (mPaused) return index;
         mZoomValue = index;
         if (mParameters == null || mCameraDevice == null) return index;
+        if ( mFocusManager != null
+                && mFocusManager.getCurrentFocusState() == FocusOverlayManager.STATE_FOCUSING ) {
+            mFocusManager.cancelAutoFocus();
+        }
         // Set zoom parameters asynchronously
         synchronized (mCameraDevice) {
             mParameters.setZoom(mZoomValue);
@@ -4866,7 +5036,10 @@ public class PhotoModule
 
     @Override
     public void onZoomChanged(float requestedZoom) {
-
+        if ( mFocusManager != null
+                && mFocusManager.getCurrentFocusState() == FocusOverlayManager.STATE_FOCUSING ) {
+            mFocusManager.cancelAutoFocus();
+        }
     }
 
     @Override
