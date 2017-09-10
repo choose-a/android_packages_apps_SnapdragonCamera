@@ -933,6 +933,11 @@ public class WideAnglePanoramaModule
     }
 
     @Override
+    public void setPreferenceForTest(String key, String value) {
+
+    }
+
+    @Override
     public void onPauseBeforeSuper() {
         mPaused = true;
         if (mLocationManager != null) mLocationManager.recordLocation(false);
@@ -1056,7 +1061,8 @@ public class WideAnglePanoramaModule
 
         mOrientationManager.resume();
         // Initialize location service.
-        boolean recordLocation = RecordLocationPreference.get(mPreferences);
+        boolean recordLocation = RecordLocationPreference.get(mPreferences,
+                CameraSettings.KEY_RECORD_LOCATION);
         mLocationManager.recordLocation(recordLocation);
         mUI.initDisplayChangeListener();
         UsageStatistics.onContentViewChanged(
@@ -1232,6 +1238,9 @@ public class WideAnglePanoramaModule
     @Override
     public void onStop() {
     }
+
+    @Override
+    public void onDestroy() {}
 
     @Override
     public void installIntentFilter() {

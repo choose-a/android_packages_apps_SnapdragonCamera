@@ -207,6 +207,30 @@ class AndroidCameraManagerImpl implements CameraManager {
             return true;
         }
 
+        public boolean waitDone(long timeout) {
+            final Object waitDoneLock = new Object();
+            final Runnable unlockRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (waitDoneLock) {
+                        waitDoneLock.notifyAll();
+                    }
+                }
+            };
+
+            synchronized (waitDoneLock) {
+                mCameraHandler.post(unlockRunnable);
+                try {
+                    waitDoneLock.wait(timeout);
+                    mCameraHandler.removeCallbacks(unlockRunnable);
+                } catch (InterruptedException ex) {
+                    Log.v(TAG, "waitDone interrupted");
+                    return false;
+                }
+            }
+            return true;
+        }
+
         /**
          * This method does not deal with the API level check.  Everyone should
          * check first for supported operations before sending message to this handler.
@@ -222,15 +246,15 @@ class AndroidCameraManagerImpl implements CameraManager {
                             } else {
                                 Method openMethod = Class.forName("android.hardware.Camera").getMethod(
                                         "openLegacy", int.class, int.class);
-                                mCamera = (android.hardware.Camera) openMethod.invoke(
-                                        null, msg.arg1, CAMERA_HAL_API_VERSION_1_0);
+                                mCamera = (Camera) openMethod.invoke(null, msg.arg1,
+                                        CAMERA_HAL_API_VERSION_1_0);
                             }
                         } catch (Exception e) {
                             /* Retry with openLegacy if open fails */
                             Log.i(TAG, "open failed due to " + e.getMessage()
                                     + ", using" + (mUseHal3 ? "openLegacy" : "open") + "instead");
-                            if (mUseHal3) {
-                                mCamera = android.hardware.Camera.open(msg.arg1);
+                            if (!mUseHal3) {
+                                mCamera = Camera.open(msg.arg1);
                             } else {
                                 try {
                                     Method openMethod = Class.forName("android.hardware.Camera").getMethod(
@@ -290,7 +314,9 @@ class AndroidCameraManagerImpl implements CameraManager {
                         try {
                             mCamera.setPreviewDisplay((SurfaceHolder) msg.obj);
                         } catch (IOException e) {
-                            throw new RuntimeException(e);
+                            Log.d(TAG,"setPreviewDisplay failed, surface is destoried");
+                            if (errorCbInstance != null)
+                                errorCbInstance.onStartPreviewFailure(msg.arg1);
                         }
                         return;
 
@@ -404,6 +430,12 @@ class AndroidCameraManagerImpl implements CameraManager {
                 }
             } catch (RuntimeException e) {
                 if (msg.what != RELEASE && mCamera != null) {
+                    if (msg.what == SET_PARAMETERS) {
+                        mParametersIsDirty = false;
+                        Log.e(TAG,"Fail to set parameters");
+                        mSig.open();
+                        return;
+                    }
                     try {
                         mCamera.release();
                     } catch (Exception ex) {
@@ -420,7 +452,6 @@ class AndroidCameraManagerImpl implements CameraManager {
                     }
                     return;
                 }
-                throw e;
             }
         }
     }
@@ -514,7 +545,7 @@ class AndroidCameraManagerImpl implements CameraManager {
         @Override
         public void stopPreview() {
             mCameraHandler.sendEmptyMessage(STOP_PREVIEW);
-            mCameraHandler.waitDone();
+            mCameraHandler.waitDone(200);
         }
 
         @Override

@@ -193,8 +193,7 @@ public class PhotoMenu extends MenuController
                 CameraSettings.KEY_QC_CHROMA_FLASH,
                 CameraSettings.KEY_REDEYE_REDUCTION,
                 CameraSettings.KEY_SELFIE_MIRROR,
-                CameraSettings.KEY_SHUTTER_SOUND,
-                CameraSettings.KEY_GRID
+                CameraSettings.KEY_SHUTTER_SOUND
         };
 
         mOtherKeys2 = new String[] {
@@ -234,13 +233,14 @@ public class PhotoMenu extends MenuController
                 CameraSettings.KEY_ADVANCED_FEATURES,
                 CameraSettings.KEY_AE_BRACKET_HDR,
                 CameraSettings.KEY_INSTANT_CAPTURE,
+                CameraSettings.KEY_BOKEH_MODE,
+                CameraSettings.KEY_BOKEH_MPO,
                 CameraSettings.KEY_MANUAL_EXPOSURE,
                 CameraSettings.KEY_MANUAL_WB,
                 CameraSettings.KEY_MANUAL_FOCUS,
                 CameraSettings.KEY_SELFIE_MIRROR,
                 CameraSettings.KEY_SHUTTER_SOUND,
-                CameraSettings.KEY_GRID,
-                SettingsManager.KEY_CAMERA2
+                CameraSettings.KEY_ZOOM
         };
 
         initSwitchItem(CameraSettings.KEY_CAMERA_ID, mFrontBackSwitcher);
@@ -704,12 +704,7 @@ public class PhotoMenu extends MenuController
         if ((autohdr != null) && autohdr.equals("enable")) {
             popup1.setPreferenceEnabled(CameraSettings.KEY_SCENE_MODE, false);
         }
-        if ((zsl != null) && Parameters.ZSL_ON.equals(zsl)) {
-            popup1.setPreferenceEnabled(CameraSettings.KEY_FOCUS_MODE, false);
-            popup1.setPreferenceEnabled(CameraSettings.KEY_MANUAL_EXPOSURE, false);
-            popup1.setPreferenceEnabled(CameraSettings.KEY_MANUAL_WB, false);
-            popup1.setPreferenceEnabled(CameraSettings.KEY_MANUAL_FOCUS, false);
-        }
+
         if ((faceDetection != null) && !Parameters.FACE_DETECTION_ON.equals(faceDetection)) {
             popup1.setPreferenceEnabled(CameraSettings.KEY_FACE_RECOGNITION, false);
         }
@@ -1285,6 +1280,7 @@ public class PhotoMenu extends MenuController
         } else {
             initializePopup();
         }
+
     }
 
     @Override
@@ -1403,14 +1399,15 @@ public class PhotoMenu extends MenuController
                 setPreference(CameraSettings.KEY_SCENE_MODE, Parameters.SCENE_MODE_AUTO);
             }
             updateSceneModeIcon((IconListPreference) scenePref);
-	} else if (same(pref, CameraSettings.KEY_CAMERA_HDR, mSettingOn)) {
+            updateFilterModeIcon(scenePref, pref);
+        } else if (same(pref, CameraSettings.KEY_CAMERA_HDR, mSettingOn)) {
             ListPreference scenePref =
                     mPreferenceGroup.findPreference(CameraSettings.KEY_SCENE_MODE);
             if (scenePref != null && notSame(scenePref, CameraSettings.KEY_SCENE_MODE, Parameters.SCENE_MODE_HDR)) {
                 setPreference(CameraSettings.KEY_SCENE_MODE, Parameters.SCENE_MODE_HDR);
             }
             updateSceneModeIcon((IconListPreference) scenePref);
-	} else if (notSame(pref,CameraSettings.KEY_AE_BRACKET_HDR,"Off")) {
+        } else if (notSame(pref,CameraSettings.KEY_AE_BRACKET_HDR,"Off")) {
             RotateTextToast.makeText(mActivity,
                            R.string.flash_aebracket_message,Toast.LENGTH_SHORT).show();
             setPreference(CameraSettings.KEY_FLASH_MODE,Parameters.FLASH_MODE_OFF);
@@ -1507,11 +1504,6 @@ public class PhotoMenu extends MenuController
         }
 
         super.onSettingChanged(pref);
-        if (same(pref, SettingsManager.KEY_CAMERA2, "enable")) {
-            mActivity.onModuleSelected(ModuleSwitcher.CAPTURE_MODULE_INDEX);
-        } else if (notSame(pref, SettingsManager.KEY_CAMERA2, "enable")) {
-            mActivity.onModuleSelected(ModuleSwitcher.PHOTO_MODULE_INDEX);
-        }
     }
 
     public int getOrientation() {

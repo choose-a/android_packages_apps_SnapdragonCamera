@@ -68,12 +68,12 @@ public class ComboPreferences implements
         }
     }
 
-    private static String getLocalSharedPreferencesName(
+    public static String getLocalSharedPreferencesName(
             Context context, int cameraId) {
         return context.getPackageName() + "_preferences_" + cameraId;
     }
 
-    private static String getGlobalSharedPreferencesName(Context context) {
+    public static String getGlobalSharedPreferencesName(Context context) {
         return context.getPackageName() + "_preferences_camera";
     }
 
@@ -153,8 +153,6 @@ public class ComboPreferences implements
                 || key.equals(CameraSettings.KEY_TIMER_SOUND_EFFECTS)
                 || key.equals(CameraSettings.KEY_PHOTOSPHERE_PICTURESIZE)
                 || key.equals(CameraSettings.KEY_CAMERA_SAVEPATH)
-                || key.equals(CameraSettings.KEY_GRID)
-                || key.equals(SettingsManager.KEY_CAMERA2)
                 || key.equals(SettingsManager.KEY_CAMERA_ID)
                 || key.equals(SettingsManager.KEY_MONO_ONLY)
                 || key.equals(SettingsManager.KEY_MONO_PREVIEW)

@@ -33,12 +33,15 @@ import android.hardware.Camera;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.Face;
+import android.media.audiofx.BassBoost;
 import android.os.Handler;
 import android.util.Log;
 import android.util.Size;
 
 import com.android.camera.CaptureModule;
+import com.android.camera.SettingsManager;
 import com.android.camera.ui.FilmstripBottomControls;
+import com.android.camera.ui.ListMenu;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -50,9 +53,10 @@ public class BeautificationFilter implements ImageFilter {
     int mStrideY;
     int mStrideVU;
     private CaptureModule mModule;
-    private static boolean DEBUG = false;
     private static String TAG = "BeautificationFilter";
     private static boolean mIsSupported = false;
+    private static int FACE_TIMEOUT_VALUE = 60; //in frame count
+    private int mFaceTimeOut = FACE_TIMEOUT_VALUE;
 
     public BeautificationFilter(CaptureModule module) {
         mModule = module;
@@ -92,23 +96,42 @@ public class BeautificationFilter implements ImageFilter {
         Face[] faces;
         if(((Boolean)isPreview).booleanValue()) {
             faces = mModule.getPreviewFaces();
+            if(faces == null || faces.length == 0) {
+                if(mFaceTimeOut > 0) {
+                    faces = mModule.getStickyFaces();
+                    mFaceTimeOut--;
+                }
+            } else {
+                mFaceTimeOut = FACE_TIMEOUT_VALUE;
+            }
         } else {
             faces = mModule.getStickyFaces();
         }
         float widthRatio = (float)mWidth/back.width();
         float heightRatio = (float)mHeight/back.height();
-        if(faces == null || faces.length == 0)
+        if(faces == null || faces.length == 0) {
             return;
+        }
         Rect rect = faces[0].getBounds();
+        int strengthValue = 100;
+        try {
+            String str = SettingsManager.getInstance().getValue(SettingsManager.KEY_MAKEUP);
+            strengthValue = Integer.parseInt(str);
+        } catch(Exception e) {
+        }
         int value = nativeBeautificationProcess(bY, bVU, mWidth, mHeight, mStrideY,
                 (int)(rect.left*widthRatio), (int)(rect.top*heightRatio),
-                (int)(rect.right*widthRatio), (int)(rect.bottom*heightRatio));
-        if(DEBUG && value < 0) {
+                (int)(rect.right*widthRatio), (int)(rect.bottom*heightRatio), strengthValue, strengthValue);
+        if(DEBUG) {
             if(value == -1) {
                 Log.d(TAG, "library initialization is failed.");
             } else if(value == -2) {
                 Log.d(TAG, "No face is recognized");
             }
+        }
+        if(value >= 0 && !((Boolean)isPreview).booleanValue()){
+            Log.i(TAG, "Successful beautification at "+faces[0].toString()+
+                    " widthRatio: "+widthRatio+" heightRatio: "+ heightRatio+" Strength: "+strengthValue);
         }
     }
 
@@ -143,11 +166,11 @@ public class BeautificationFilter implements ImageFilter {
     }
 
     private native int nativeBeautificationProcess(ByteBuffer yB, ByteBuffer vuB,
-                        int width, int height, int stride, int fleft, int ftop, int fright, int fbottom);
+                        int width, int height, int stride, int fleft, int ftop, int fright, int fbottom, int whiteLevel, int cleanLevel);
 
     static {
         try {
-            System.loadLibrary("jni_makeup");
+            System.loadLibrary("jni_makeupV2");
             mIsSupported = true;
         }catch(UnsatisfiedLinkError e) {
             mIsSupported = false;
