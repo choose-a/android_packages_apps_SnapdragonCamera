@@ -48,4 +48,8 @@
 
     <!-- Enable HAL3 by default -->
     <bool name="config_use_hal3">false</bool>
+
+    <!-- Use volume buttons for zooming -->
+    <bool name="volume_key_for_zoom">false</bool>
+
 </resources>
