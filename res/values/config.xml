@@ -64,4 +64,7 @@
          will be enabled ONLY for these scenemodes and disabled for others. -->
     <string-array name="longshot_scenemodes"></string-array>
 
+    <!-- Use volume buttons for zooming -->
+    <bool name="volume_key_for_zoom">false</bool>
+
 </resources>
