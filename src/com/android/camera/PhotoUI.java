@@ -1079,6 +1079,10 @@ public class PhotoUI implements PieListener,
         mShutterButton.setPressed(true);
     }
 
+    public ZoomRenderer getZoomRenderer() {
+        return mZoomRenderer;
+    }
+
     private class ZoomChangeListener implements ZoomRenderer.OnZoomChangedListener {
         @Override
         public void onZoomValueChanged(int index) {
