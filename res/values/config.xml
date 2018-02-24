@@ -37,4 +37,8 @@
     <!-- ISO values use numbers.
          Example: 50 instead of ISO50 -->
     <bool name="iso_values_use_numbers">false</bool>
+
+    <!-- Use volume buttons for zooming -->
+    <bool name="volume_key_for_zoom">false</bool>
+
 </resources>
