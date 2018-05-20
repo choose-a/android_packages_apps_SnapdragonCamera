@@ -70,7 +70,6 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.android.camera.app.CameraApp;
 import com.android.camera.CameraManager.CameraAFCallback;
 import com.android.camera.CameraManager.CameraAFMoveCallback;
 import com.android.camera.CameraManager.CameraPictureCallback;
@@ -287,8 +286,6 @@ public class PhotoModule
     private TextView mBokehTipText;
     private boolean mDepthSuccess = false;
     private boolean mSaveBokehXmp = false;
-
-    private static Context mApplicationContext;
 
     private class OpenCameraThread extends Thread {
         @Override
@@ -961,8 +958,6 @@ public class PhotoModule
             return;
         }
 
-        mApplicationContext = CameraApp.getContext();
-
         // Initialize location service.
         boolean recordLocation = RecordLocationPreference.get(mPreferences,
                 CameraSettings.KEY_RECORD_LOCATION);
@@ -1493,18 +1488,6 @@ public class PhotoModule
                     && (mCameraState != LONGSHOT)
                     && (mSnapshotMode != CameraInfoWrapper.CAMERA_SUPPORT_MODE_ZSL)
                     && (mReceivedSnapNum == mBurstSnapNum);
-
-            boolean backCameraRestartPreviewOnPictureTaken = 
-                mApplicationContext.getResources().getBoolean(R.bool.back_camera_restart_preview_onPictureTaken);
-            boolean frontCameraRestartPreviewOnPictureTaken = 
-                mApplicationContext.getResources().getBoolean(R.bool.front_camera_restart_preview_onPictureTaken);
-
-            CameraInfo info = CameraHolder.instance().getCameraInfo()[mCameraId];
-            if ((info.facing == CameraInfo.CAMERA_FACING_BACK && backCameraRestartPreviewOnPictureTaken) 
-                || (info.facing == CameraInfo.CAMERA_FACING_FRONT && frontCameraRestartPreviewOnPictureTaken)) {
-                needRestartPreview = true;
-            }
-
             if (needRestartPreview) {
                 setupPreview();
                 if (CameraUtil.FOCUS_MODE_CONTINUOUS_PICTURE.equals(
