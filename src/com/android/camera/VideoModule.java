@@ -2939,11 +2939,6 @@ public class VideoModule implements CameraModule,
                 mPreferences.getString(CameraSettings.KEY_CAMERA_SAVEPATH, "0").equals("1"));
             mActivity.updateStorageSpaceAndHint();
             mActivity.showGrid(mPreferences);
-
-            // Update the gallery app
-            Intent intent = new Intent("com.android.gallery3d.STORAGE_CHANGE");
-            intent.putExtra("pref_camera_storage_key", Storage.getRoot());
-            mActivity.sendBroadcast(intent);
         }
     }
 
