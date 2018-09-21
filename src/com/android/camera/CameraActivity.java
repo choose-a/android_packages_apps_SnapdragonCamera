@@ -171,7 +171,7 @@ public class CameraActivity extends Activity
     private static final int SWITCH_SAVE_PATH = 2;
 
     /** Permission request code */
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final int PERMISSIONS_REQUEST_ACCESS_LOCATION = 1;
 
     /** Whether onResume should reset the view to the preview. */
     private boolean mResetToPreviewOnResume = true;
@@ -1846,6 +1846,11 @@ public class CameraActivity extends Activity
         if (settingsManager == null) {
             SettingsManager.createInstance(this);
         }
+
+        if (mCurrentModule.isEnabledRecordingLocation()) {
+            requestLocationPermission();
+        }
+
         // Hide action bar first since we are in full screen mode first, and
         // switch the system UI to lights-out mode.
         this.setSystemBarsVisibility(false);
@@ -2082,7 +2087,7 @@ public class CameraActivity extends Activity
             mCurrentModule.waitingLocationPermissionResult(true);
             requestPermissions(
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                PERMISSIONS_REQUEST_ACCESS_LOCATION);
         }
     }
 
@@ -2090,7 +2095,7 @@ public class CameraActivity extends Activity
     public void onRequestPermissionsResult(int requestCode,
             String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+            case PERMISSIONS_REQUEST_ACCESS_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
                 mCurrentModule.waitingLocationPermissionResult(false);
                 if (grantResults.length > 0
