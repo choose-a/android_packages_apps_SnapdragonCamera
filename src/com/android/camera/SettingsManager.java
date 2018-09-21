@@ -561,7 +561,7 @@ public class SettingsManager implements ListMenu.SettingsListener {
             try {
                 newValue = dependencyList.getString(keyToProcess);
             } catch (JSONException e) {
-                Log.w(TAG, "initializeValueMap JSONException No value for:" + keyToProcess);
+                //e.printStackTrace();
                 continue;
             }
             Values values = new Values(getValue(keyToProcess), newValue);
@@ -630,7 +630,7 @@ public class SettingsManager implements ListMenu.SettingsListener {
             try {
                 newValue = dependencyList.getString(keyToTurnOff);
             } catch (JSONException e) {
-                Log.w(TAG, "checkDependencyAndUpdate JSONException No value for:" + keyToTurnOff);
+                //e.printStackTrace();
                 continue;
             }
             if (newValue == null) continue;
@@ -2327,7 +2327,7 @@ public class SettingsManager implements ListMenu.SettingsListener {
             ex.printStackTrace();
             return null;
         } catch (JSONException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
     }
@@ -2337,7 +2337,7 @@ public class SettingsManager implements ListMenu.SettingsListener {
         try {
             return mDependency.getJSONObject(key);
         } catch (JSONException e) {
-            Log.w(TAG, "getDependencyMapForKey JSONException No value for:" + key);
+            //e.printStackTrace();
             return null;
         }
     }
@@ -2351,7 +2351,7 @@ public class SettingsManager implements ListMenu.SettingsListener {
         try {
             return dependencyMap.getJSONObject(value);
         } catch (JSONException e) {
-            Log.w(TAG, "getDependencyList JSONException No value for:" + key);
+            //e.printStackTrace();
             return null;
         }
     }
