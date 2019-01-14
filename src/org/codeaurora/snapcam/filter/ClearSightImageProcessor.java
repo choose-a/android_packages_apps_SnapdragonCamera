@@ -27,7 +27,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.codeaurora.snapcam.filter;
+package org.choose.snap.filter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.BufferedOutputStream;
@@ -40,9 +40,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.codeaurora.snapcam.filter.ClearSightNativeEngine.CamSystemCalibrationData;
-import org.codeaurora.snapcam.filter.ClearSightNativeEngine.ClearsightImage;
-import org.codeaurora.snapcam.filter.DDMNativeEngine;
+import org.choose.snap.filter.ClearSightNativeEngine.CamSystemCalibrationData;
+import org.choose.snap.filter.ClearSightNativeEngine.ClearsightImage;
+import org.choose.snap.filter.DDMNativeEngine;
 
 import android.content.Context;
 import android.graphics.Bitmap;

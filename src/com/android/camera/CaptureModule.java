@@ -122,8 +122,8 @@ import com.android.camera.util.AccessibilityUtils;
 import com.android.camera.util.VendorTagUtil;
 import com.android.internal.util.MemInfoReader;
 
-import org.codeaurora.snapcam.R;
-import org.codeaurora.snapcam.filter.ClearSightImageProcessor;
+import org.choose.snap.R;
+import org.choose.snap.filter.ClearSightImageProcessor;
 
 import java.io.File;
 import java.io.FileNotFoundException;

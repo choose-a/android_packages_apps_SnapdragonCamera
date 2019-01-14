@@ -45,7 +45,7 @@ import com.android.camera.util.ApiHelper;
 import android.os.ConditionVariable;
 import java.lang.reflect.Method;
 
-import org.codeaurora.snapcam.wrapper.CameraWrapper;
+import org.choose.snap.wrapper.CameraWrapper;
 
 /**
  * A class to implement {@link CameraManager} of the Android camera framework.
