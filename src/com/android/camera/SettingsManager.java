@@ -65,7 +65,7 @@ import com.android.camera.ui.TrackingFocusRenderer;
 import com.android.camera.util.SettingTranslation;
 import com.android.camera.app.CameraApp;
 
-import org.codeaurora.snapcam.R;
+import org.choose.snap.R;
 import org.json.JSONException;
 import org.json.JSONObject;
 
