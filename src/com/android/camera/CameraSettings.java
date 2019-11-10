@@ -42,9 +42,9 @@ import com.android.camera.util.GcamHelper;
 import com.android.camera.util.MultiMap;
 import com.android.camera.util.PersistUtil;
 
-import org.codeaurora.snapcam.R;
-import org.codeaurora.snapcam.wrapper.CamcorderProfileWrapper;
-import org.codeaurora.snapcam.wrapper.ParametersWrapper;
+import org.choose.snap.R;
+import org.choose.snap.wrapper.CamcorderProfileWrapper;
+import org.choose.snap.wrapper.ParametersWrapper;
 
 import java.util.ArrayList;
 import java.util.Collections;
