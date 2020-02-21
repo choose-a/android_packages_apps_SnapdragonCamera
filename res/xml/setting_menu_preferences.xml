@@ -141,8 +141,6 @@
 
         <ListPreference
             android:defaultValue="@string/pref_camera2_picture_format_default"
-            android:entries="@array/pref_camera2_picture_format_entries"
-            android:entryValues="@array/pref_camera2_picture_format_entryvalues"
             android:icon="@drawable/ic_settings_storage"
             android:key="pref_camera2_picture_format_key"
             android:layout="@layout/preference"
